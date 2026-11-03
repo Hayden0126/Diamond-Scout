@@ -18,7 +18,7 @@ const positionChoices=[['C','Catcher'],['P','Pitcher'],['1B','First Base'],['2B'
 function selectedPositions(){return [...document.querySelectorAll('#positionOptions input:checked')].map(el=>el.value)}
 function updatePositionSummary(){$('positionSummary').textContent=selectedPositions().join(', ')||'Select positions'}
 function resetPositions(){document.querySelectorAll('#positionOptions input').forEach(el=>el.checked=false);updatePositionSummary();$('positionPicker').open=false}
-const labels={catcher:'Catcher',hitting:'Hitting',outfield:'Outfield',infield:'Infield',pitching:'Pitching',attributes:'Player Attributes'};
+const labels={infield:'Infield',hitting:'Hitting',outfield:'Outfield',catcher:'Catcher',pitching:'Pitching',attributes:'Player Attributes'};
 let sb,user,profile,players=[],profiles=[],evaluations=[],station='hitting',ratings={},busy=false;
 const setStatus=(s,err=false)=>{$('status').textContent=s;$('status').className='status '+(err?'error':'success')};
 const fail=e=>{setStatus(e.message||String(e),true);console.error(e)};
