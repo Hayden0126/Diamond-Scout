@@ -26,12 +26,12 @@
 (()=>{'use strict';
 const URL='https://odlhskrhzjgvlbxevqny.supabase.co',KEY='sb_publishable_QmW4KLpbLW1AKwBh3TmEog_7pTl43rU';
 const $=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const skills={catcher:{catcherReceiving:'Catching',popTime:'Pop Time',throwDown:'Throw Down'},hitting:{contact:'Contact',power:'Power',swing:'Swing mechanics',approach:'Plate approach'},outfield:{tracking:'Fly-ball tracking',catching:'Catching',outfieldAccuracy:'Throw accuracy',outfieldArm:'Arm strength'},infield:{glove:'Glove work',footwork:'Footwork',infieldAccuracy:'Throw accuracy',infieldArm:'Arm strength'},pitching:{mechanics:'Pitching mechanics',control:'Pitch control',velocity:'Velocity / arm strength',composure:'Composure'},attributes:{attitude:'Attitude',confidence:'Confidence',baseballIQ:'Baseball IQ'}};
+const skills={catcher:{catcherReceiving:'Catching',popTime:'Pop Time',throwDown:'Throw Down'},hitting:{contact:'Contact',power:'Power',swing:'Swing mechanics',approach:'Plate approach'},outfield:{tracking:'Fly-ball tracking',catching:'Catching',outfieldAccuracy:'Throw accuracy',outfieldArm:'Arm strength'},infield:{glove:'Glove work',footwork:'Footwork',infieldAccuracy:'Throw accuracy',infieldArm:'Arm strength'},pitching:{mechanics:'Pitching mechanics',control:'Pitch control',velocity:'Velocity / arm strength',composure:'Composure'},attributes:{attitude:'Attitude',confidence:'Confidence',baseballIQ:'Baseball IQ'},athleticism:{speed:'Speed',athleticFootwork:'Footwork',strength:'Strength',conditioning:'Conditioning'}};
 const positionChoices=[['C','Catcher'],['P','Pitcher'],['1B','First Base'],['2B','Second Base'],['SS','Short Stop'],['3B','Third Base'],['LF','Left Field'],['CF','Center Field'],['RF','Right Field']];
 function selectedPositions(){return [...document.querySelectorAll('#positionOptions input:checked')].map(el=>el.value)}
 function updatePositionSummary(){$('positionSummary').textContent=selectedPositions().join(', ')||'Select positions'}
 function resetPositions(){document.querySelectorAll('#positionOptions input').forEach(el=>el.checked=false);updatePositionSummary();$('positionPicker').open=false}
-const labels={infield:'Infield',hitting:'Hitting',outfield:'Outfield',catcher:'Catcher',pitching:'Pitching',attributes:'Player Attributes'};
+const labels={infield:'Infield',hitting:'Hitting',outfield:'Outfield',catcher:'Catcher',pitching:'Pitching',attributes:'Player Attributes',athleticism:'Athleticism'};
 let sb,user,profile,players=[],profiles=[],evaluations=[],station='hitting',ratings={},busy=false,dirtyStations=new Set();
 const setStatus=(s,err=false)=>{$('status').textContent=s;$('status').className='status '+(err?'error':'success')};
 const fail=e=>{setStatus(e.message||String(e),true);console.error(e)};
