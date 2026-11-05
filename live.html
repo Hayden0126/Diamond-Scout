@@ -140,7 +140,21 @@ function renderRoster(){
 }
 
 function mean(e){const a=Object.values(e.ratings||{}).filter(x=>Number.isInteger(x)&&x>=1&&x<=5);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
-function renderCompare(){const pid=$('comparePlayer').value,st=$('compareStation').value;const cards=visibleEvaluations().filter(e=>e.player_id===pid&&e.station===st);const name=id=>profiles.find(p=>p.user_id===id)?.display_name||'Coach';const rows=profiles.filter(c=>c.role!=='owner_readonly'&&(cards.some(e=>e.coach_id===c.user_id)||c.user_id===user.id)).map(c=>{const e=cards.find(x=>x.coach_id===c.user_id),m=e&&mean(e);return '<tr><td>'+safe(c.display_name)+(c.user_id===user.id?' (You)':'')+'</td>'+Object.keys(skills[st]||{}).map(k=>'<td>'+(e?.ratings?.[k]??'—')+'</td>').join('')+'<td>'+(m==null?'—':m.toFixed(2))+'</td></tr>'}).join('');const averages=cards.map(mean).filter(v=>v!==null);$('comparison').innerHTML='<p><b>Coach average: '+(averages.length?(averages.reduce((a,b)=>a+b,0)/averages.length).toFixed(2)+'/5':'Not rated')+'</b></p><div class="compare"><table><thead><tr><th>Coach</th>'+Object.values(skills[st]||{}).map(x=>'<th>'+safe(x)+'</th>').join('')+'<th>Average</th></tr></thead><tbody>'+rows+'</tbody></table></div><h2>Coach observations</h2>'+profiles.filter(c=>c.role!=='owner_readonly').map(c=>{const e=cards.find(x=>x.coach_id===c.user_id);return '<div class="item"><b>'+safe(c.display_name)+'</b>'+(e?'<p><b>Pros:</b> '+safe(e.pros||'—')+'</p><p><b>Cons:</b> '+safe(e.cons||'—')+'</p><p><b>Notes:</b> '+safe(e.notes||'—')+'</p>':'<p class="muted">Not submitted</p>')+'</div>'}).join('')}
+function comparisonCoaches(playerId){
+ const player=players.find(p=>p.id===playerId);
+ if(!player)return [];
+ const division=player.division||'10u';
+ const group=profile?.coaching_group;
+ const privileged=profile?.role==='manager'||profile?.role==='owner_readonly';
+ return profiles.filter(c=>{
+  if(c.role==='owner_readonly')return false;
+  if(privileged)return division==='10u'?['all','kolt10'].includes(c.coaching_group):['all','gavin9','aldo9'].includes(c.coaching_group);
+  if(division==='10u')return ['all','kolt10'].includes(c.coaching_group);
+  if(group==='aldo9')return c.coaching_group==='aldo9';
+  return ['all','gavin9'].includes(c.coaching_group);
+ });
+}
+function renderCompare(){const pid=$('comparePlayer').value,st=$('compareStation').value;const cards=visibleEvaluations().filter(e=>e.player_id===pid&&e.station===st);const name=id=>profiles.find(p=>p.user_id===id)?.display_name||'Coach';const rows=comparisonCoaches(pid).filter(c=>cards.some(e=>e.coach_id===c.user_id)||c.user_id===user.id).map(c=>{const e=cards.find(x=>x.coach_id===c.user_id),m=e&&mean(e);return '<tr><td>'+safe(c.display_name)+(c.user_id===user.id?' (You)':'')+'</td>'+Object.keys(skills[st]||{}).map(k=>'<td>'+(e?.ratings?.[k]??'—')+'</td>').join('')+'<td>'+(m==null?'—':m.toFixed(2))+'</td></tr>'}).join('');const averages=cards.map(mean).filter(v=>v!==null);$('comparison').innerHTML='<p><b>Coach average: '+(averages.length?(averages.reduce((a,b)=>a+b,0)/averages.length).toFixed(2)+'/5':'Not rated')+'</b></p><div class="compare"><table><thead><tr><th>Coach</th>'+Object.values(skills[st]||{}).map(x=>'<th>'+safe(x)+'</th>').join('')+'<th>Average</th></tr></thead><tbody>'+rows+'</tbody></table></div><h2>Coach observations</h2>'+profiles.filter(c=>c.role!=='owner_readonly').map(c=>{const e=cards.find(x=>x.coach_id===c.user_id);return '<div class="item"><b>'+safe(c.display_name)+'</b>'+(e?'<p><b>Pros:</b> '+safe(e.pros||'—')+'</p><p><b>Cons:</b> '+safe(e.cons||'—')+'</p><p><b>Notes:</b> '+safe(e.notes||'—')+'</p>':'<p class="muted">Not submitted</p>')+'</div>'}).join('')}
 let rankingMode='all';
 
 const diamondSpots=[
