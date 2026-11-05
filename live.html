@@ -165,17 +165,21 @@ const diamondSpots=[
 let expandedPosition=null,expandedPositionPlayer=null;
 function playerPositions(p){return String(p.positions||'').split(/[,;/|]+/).map(x=>x.trim().toUpperCase()).filter(Boolean)}
 function positionPlayers(code){return players.filter(p=>(p.division||'10u')===divisionView&&playerPositions(p).includes(code))}
-function allCoachPositionScore(p){
- const stationScores=Object.keys(skills).map(st=>{
+function positionStations(code){
+ const field=code==='P'?'pitching':code==='C'?'catcher':['LF','CF','RF'].includes(code)?'outfield':'infield';
+ return ['hitting',field];
+}
+function allCoachPositionScore(p,code){
+ const stationScores=(code?positionStations(code):Object.keys(skills)).map(st=>{
   const scores=visibleEvaluations().filter(e=>e.player_id===p.id&&e.station===st).map(mean).filter(v=>v!==null);
   return scores.length?{station:st,score:scores.reduce((a,b)=>a+b,0)/scores.length}:null
  }).filter(Boolean);
  return {avg:stationScores.length?stationScores.reduce((a,b)=>a+b.score,0)/stationScores.length:null,stations:stationScores};
 }
-function positionPlayerReport(p){
- const summary=allCoachPositionScore(p);
- return '<div class="position-report"><p><b>All-coach overall average:</b> '+(summary.avg===null?'Not rated':summary.avg.toFixed(2)+'/5')+' · '+summary.stations.length+'/'+Object.keys(skills).length+' stations</p>'+
- Object.entries(labels).map(([st,title])=>{
+function positionPlayerReport(p,code){
+ const summary=allCoachPositionScore(p,code);
+ return '<div class="position-report"><p><b>All-coach overall average:</b> '+(summary.avg===null?'Not rated':summary.avg.toFixed(2)+'/5')+' · '+summary.stations.length+'/'+positionStations(code).length+' stations</p>'+
+ Object.entries(labels).filter(([st])=>positionStations(code).includes(st)).map(([st,title])=>{
   const station=summary.stations.find(x=>x.station===st);
   const allowedCoachIds=new Set(comparisonCoaches(p.id).map(c=>c.user_id));
   const cards=visibleEvaluations().filter(e=>e.player_id===p.id&&e.station===st&&allowedCoachIds.has(e.coach_id));
@@ -197,7 +201,7 @@ function renderPositions(){
  $('positionDiamond').innerHTML=field+diamondSpots.map(([code,x,y])=>'<button type="button" class="field-position'+(expandedPosition===code?' selected':'')+'" style="left:'+x+'%;top:'+y+'%" data-fieldpos="'+code+'" aria-label="'+safe(positionChoices.find(p=>p[0]===code)[1])+': '+counts[code]+' players"><span>'+code+'</span><strong>'+counts[code]+'</strong></button>').join('');
  $('positionDetails').innerHTML=positionChoices.map(([code,name])=>{
   const list=positionPlayers(code),open=expandedPosition===code;
-  const detail=open?'<div class="position-players">'+(list.length?list.slice().sort((a,b)=>(allCoachPositionScore(b).avg??-1)-(allCoachPositionScore(a).avg??-1)||Number(a.number)-Number(b.number)).map((p,i)=>{const score=allCoachPositionScore(p),open=expandedPositionPlayer===p.id;return '<div class="item"><button class="position-player-button" data-pos-player="'+safe(p.id)+'" aria-expanded="'+open+'"><span><b>'+(i+1)+'. #'+safe(p.number)+' — '+safe(p.name)+'</b><span class="muted" style="display:block">'+safe(p.positions||'')+' · '+score.stations.length+'/'+Object.keys(skills).length+' stations</span></span><span class="position-score">'+(score.avg===null?'—':score.avg.toFixed(2))+' <small>/ 5</small></span><span>'+(open?'⌃':'›')+'</span></button>'+(open?positionPlayerReport(p):'')+'</div>'}).join(''):'<p class="muted">No players assigned yet.</p>')+'</div>':'';
+  const detail=open?'<div class="position-players">'+(list.length?list.slice().sort((a,b)=>(allCoachPositionScore(b,code).avg??-1)-(allCoachPositionScore(a,code).avg??-1)||Number(a.number)-Number(b.number)).map((p,i)=>{const score=allCoachPositionScore(p,code),open=expandedPositionPlayer===p.id;return '<div class="item"><button class="position-player-button" data-pos-player="'+safe(p.id)+'" aria-expanded="'+open+'"><span><b>'+(i+1)+'. #'+safe(p.number)+' — '+safe(p.name)+'</b><span class="muted" style="display:block">'+safe(p.positions||'')+' · '+score.stations.length+'/'+positionStations(code).length+' stations</span></span><span class="position-score">'+(score.avg===null?'—':score.avg.toFixed(2))+' <small>/ 5</small></span><span>'+(open?'⌃':'›')+'</span></button>'+(open?positionPlayerReport(p,code):'')+'</div>'}).join(''):'<p class="muted">No players assigned yet.</p>')+'</div>':'';
   return '<div class="position-group"><button class="position-summary" data-pos-detail="'+code+'" aria-expanded="'+open+'"><span class="position-code">'+code+'</span><b>'+name+'</b><span class="position-count">'+list.length+' player'+(list.length===1?'':'s')+'</span><span>'+ (open?'⌃':'›') +'</span></button>'+detail+'</div>'
  }).join('');
  document.querySelectorAll('[data-fieldpos],[data-pos-detail]').forEach(b=>b.onclick=()=>{const code=b.dataset.fieldpos||b.dataset.posDetail;expandedPosition=expandedPosition===code?null:code;expandedPositionPlayer=null;renderPositions();if(b.dataset.fieldpos&&expandedPosition)$('positionDetails').scrollIntoView({behavior:'smooth',block:'start'})});
