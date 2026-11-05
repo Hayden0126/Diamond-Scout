@@ -78,7 +78,7 @@ function renderDivisionTabs(){
  const dual=isGlobal();
  if(!dual)divisionView=profile?.coaching_group==='kolt10'?'10u':'9u';
  document.querySelectorAll('.division-control').forEach(el=>{
-  el.innerHTML=(dual?['9u','10u']:['9u']).map(d=>'<button type="button" class="division-button'+(divisionView===d?' active':'')+'" data-division="'+d+'" aria-pressed="'+(divisionView===d)+'">'+d.toUpperCase()+'</button>').join('');
+  el.innerHTML=(dual?['9u','10u']:[divisionView]).map(d=>'<button type="button" class="division-button'+(divisionView===d?' active':'')+'" data-division="'+d+'" aria-pressed="'+(divisionView===d)+'">'+d.toUpperCase()+'</button>').join('');
   el.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{divisionView=btn.dataset.division;renderAll()});
  });
  $('newDivision').value=divisionView;
