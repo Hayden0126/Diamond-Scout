@@ -50,10 +50,12 @@ function registrationDuplicate(r){
  registrations.some(p=>p.id!==r.id&&p.division===r.division&&normalize(p.first_name+' '+p.last_name)===full);
 }
 function renderRegistrations(){
- const queue=$('registrationQueue');$('pendingCount').textContent=registrationEnabled?'('+registrations.filter(r=>r.division===divisionView).length+')':'';
+ const queue=$('registrationQueue');
+ const managerAll=profile?.role==='manager'&&isGlobal();
+ const visible=registrations.filter(r=>managerAll||r.division===divisionView);
+ $('pendingCount').textContent=registrationEnabled?'('+visible.length+')':'';
  if(!registrationEnabled){queue.innerHTML='';return}
- const visible=registrations.filter(r=>r.division===divisionView);
- queue.innerHTML=visible.length?visible.map(r=>'<div class="item"><b>'+safe(r.first_name)+' '+safe(r.last_name)+'</b> '+divisionTag(r)+(registrationDuplicate(r)?' <span class="chip" style="background:#fff0cb;color:#784a00">Possible duplicate — review carefully</span>':'')+'<div class="muted">'+safe(r.positions)+'</div>'+(canManageRoster()?'<div class="row" style="margin-top:8px"><button data-approve="'+safe(r.id)+'" class="primary">Approve</button><button data-reject="'+safe(r.id)+'">Reject</button></div>':'')+'</div>').join(''):'<p class="muted">No pending registrations for this division.</p>';
+ queue.innerHTML=visible.length?visible.map(r=>'<div class="item"><b>'+safe(r.first_name)+' '+safe(r.last_name)+'</b> '+divisionTag(r)+(registrationDuplicate(r)?' <span class="chip" style="background:#fff0cb;color:#784a00">Possible duplicate — review carefully</span>':'')+'<div class="muted">'+safe(r.positions)+'</div>'+(canManageRoster()?'<div class="row" style="margin-top:8px"><button data-approve="'+safe(r.id)+'" class="primary">Approve</button><button data-reject="'+safe(r.id)+'">Reject</button></div>':'')+'</div>').join('') :'<p class="muted">'+(managerAll?'No pending registrations in either division.':'No pending registrations for this division.')+'</p>';
  queue.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>decideRegistration(b.dataset.approve,true));
  queue.querySelectorAll('[data-reject]').forEach(b=>b.onclick=()=>decideRegistration(b.dataset.reject,false));
 }
