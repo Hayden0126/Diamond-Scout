@@ -37,12 +37,12 @@ let sb,user,profile,players=[],profiles=[],evaluations=[],divisionView='10u',ran
 const setStatus=(s,err=false)=>{$('status').textContent=s;$('status').className='status '+(err?'error':'success')};
 const fail=e=>{setStatus(e.message||String(e),true);console.error(e)};
 async function load(){const [p,c,e]=await Promise.all([sb.from('players').select('*').order('number'),sb.from('coach_profiles').select('*'),sb.from('evaluations').select('*')]);for(const x of [p,c,e])if(x.error)throw x.error;players=p.data;profiles=c.data;evaluations=e.data;renderAll()}
-function isGlobal(){return profile?.team_group==='all'}
+function isGlobal(){return profile?.coaching_group==='all'}
 function visibleEvaluations(){return evaluations}
 function divisionTag(p){return '<span class="chip">'+safe((p.division||'10u').toUpperCase())+'</span>'}
 function renderDivisionTabs(){
- const dual=isGlobal()||profile?.team_group==='10u';
- if(!dual)divisionView='9u';
+ const dual=isGlobal();
+ if(!dual)divisionView=profile?.coaching_group==='kolt10'?'10u':'9u';
  document.querySelectorAll('.division-control').forEach(el=>{
   el.innerHTML=(dual?['9u','10u']:['9u']).map(d=>'<button type="button" class="division-button'+(divisionView===d?' active':'')+'" data-division="'+d+'" aria-pressed="'+(divisionView===d)+'">'+d.toUpperCase()+'</button>').join('');
   el.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{divisionView=btn.dataset.division;renderAll()});
@@ -189,7 +189,7 @@ async function enter(){
  const {data:p,error}=await sb.from('coach_profiles').select('*').eq('user_id',u.id).maybeSingle();
  if(error)throw error;
  if(!p){$('login').classList.remove('hidden');$('app').classList.add('hidden');$('loginMessage').textContent='Your account is authenticated, but your DiamondScout member profile could not be accessed. Contact the administrator.';return false}
- profile=p;divisionView=p.team_group==='9u'?'9u':'10u';rankingScope=p.team_group==='9u'?'9u':'10u';$('passwordSetup').classList.add('hidden');$('identity').textContent=p.display_name+' · '+(isOwnerReadOnly()?'Owner · Read Only':p.role==='manager'?'Manager':p.role==='head_coach'?'Head Coach':p.team_group==='9u'?'9U Coach':'Assistant Coach');document.querySelector('[data-page="evaluate"]').classList.toggle('hidden',isOwnerReadOnly());
+ profile=p;divisionView=p.coaching_group==='kolt10'?'10u':'9u';rankingScope=divisionView;$('passwordSetup').classList.add('hidden');$('identity').textContent=p.display_name+' · '+(isOwnerReadOnly()?'Owner · Read Only':p.role==='manager'?'Manager':p.role==='head_coach'?'Head Coach':p.coaching_group==='kolt10'?'10U Coach':p.coaching_group==='gavin9'?'9U · Gavin Group':p.coaching_group==='aldo9'?'9U · Aldo Group':'Coach');document.querySelector('[data-page="evaluate"]').classList.toggle('hidden',isOwnerReadOnly());
  $('login').classList.add('hidden');$('app').classList.remove('hidden');await showPage(isOwnerReadOnly()?'rankings':'evaluate');return true
 }
 async function processLoginRedirect(){
